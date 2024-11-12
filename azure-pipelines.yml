@@ -18,20 +18,25 @@ jobs:
       DATE_TAG: $(Build.BuildId)  # Use Azure DevOps Build ID as a tag
 
     steps:
-      # Step 1: Set JAVA_HOME correctly (Use Java 11 path as per your previous example)
+      # Step 1: Set Docker socket permissions
+      - script: |
+          sudo chmod 666 /var/run/docker.sock
+        displayName: 'Set Docker socket permissions'
+
+      # Step 2: Set JAVA_HOME correctly (Use Java 11 path as per your previous example)
       - script: |
           echo "##vso[task.setvariable variable=JAVA_HOME]/usr/lib/jvm/java-11-openjdk-amd64"
           echo "JAVA_HOME is set to: $(JAVA_HOME)"
         displayName: 'Set JAVA_HOME'
 
-      # Step 2: Print Maven Path and verify Maven installation
+      # Step 3: Print Maven Path and verify Maven installation
       - script: |
           echo "Maven Path: $(which mvn)"
           echo "JAVA_HOME is: $(JAVA_HOME)"
           mvn -v  # Verify Maven is correctly installed
         displayName: 'Verify Maven Installation'
 
-      # Step 3: Maven build step (Build Maven Project)
+      # Step 4: Maven build step (Build Maven Project)
       - task: Maven@4
         inputs:
           mavenPomFile: 'pom.xml'  # Root-level `pom.xml` as per your structure
@@ -44,7 +49,7 @@ jobs:
           options: ''  # Removed -X for less verbose output
         displayName: 'Build Maven Project'
 
-      # Step 4: Docker build and push to Azure Container Registry (ACR)
+      # Step 5: Docker build and push to Azure Container Registry (ACR)
       - task: Docker@2
         inputs:
           command: 'buildAndPush'
@@ -54,13 +59,13 @@ jobs:
           tags: |
             latest-$(Build.BuildId)  # Use build ID as the tag
 
-      # Step 5: Install zip utility for archiving build artifacts
+      # Step 6: Install zip utility for archiving build artifacts
       - script: |
           sudo apt-get update
           sudo apt-get install -y zip
         displayName: 'Install zip utility'
 
-      # Step 6: Archive build artifacts
+      # Step 7: Archive build artifacts
       - task: ArchiveFiles@2
         inputs:
           rootFolderOrFile: '$(Build.BinariesDirectory)'  # Specify the directory to archive
