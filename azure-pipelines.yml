@@ -53,7 +53,7 @@ jobs:
       - task: Docker@2
         inputs:
           command: 'buildAndPush'
-          repository: 'samrg.azurecr.io/devopstool'    # Replace with your actual ACR repository name
+          repository: 'muddaacr.azurecr.io/devopstool'    # Replace with your actual ACR repository name
           dockerfile: 'Dockerfile'                     # Root-level Dockerfile
           containerRegistry: 'md-service-connection-docker'  # Replace with your ACR service connection name
           tags: |
