@@ -53,11 +53,12 @@ jobs:
       - task: Docker@2
         inputs:
           command: 'buildAndPush'
-          repository: 'samrg.azurecr.io/devopstool'  # Replace with your actual ACR repository name
-          dockerfile: 'Dockerfile'  # Root-level Dockerfile
+          repository: 'samrg.azurecr.io/devopstool'    # Replace with your actual ACR repository name
+          dockerfile: 'Dockerfile'                     # Root-level Dockerfile
           containerRegistry: 'md-service-connection-docker'  # Replace with your ACR service connection name
           tags: |
-            latest-$(Build.BuildId)  # Correct tag format without spaces or comments
+            latest-$(Build.BuildId)
+
 
       # Step 6: Install zip utility for archiving build artifacts
       - script: |
