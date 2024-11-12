@@ -10,6 +10,13 @@ jobs:
     pool:
       name: 'Default'
 
+    variables:
+      DOCKER_BUILDKIT: '1'
+      DOCKER_REGISTRY: 'mudassir376'  # Replace with your Docker Hub username
+      DOCKER_IMAGE_NAME: 'automate'  # Replace with your image name
+      DOCKER_IMAGE_TAG: 'latest'
+      DATE_TAG: $(Build.BuildId)  # Use Azure DevOps Build ID as a tag
+
     steps:
       # Step 1: Set JAVA_HOME correctly (Use Java 11 path as per your previous example)
       - script: |
@@ -17,20 +24,27 @@ jobs:
           echo "JAVA_HOME is set to: $(JAVA_HOME)"
         displayName: 'Set JAVA_HOME'
 
-      # Step 2: Maven build step (Build Maven Project)
-      - task: Maven@3
+      # Step 2: Print Maven Path and verify Maven installation
+      - script: |
+          echo "Maven Path: $(which mvn)"
+          echo "JAVA_HOME is: $(JAVA_HOME)"
+          mvn -v  # Verify Maven is correctly installed
+        displayName: 'Verify Maven Installation'
+
+      # Step 3: Maven build step (Build Maven Project)
+      - task: Maven@4
         inputs:
           mavenPomFile: 'pom.xml'  # Root-level `pom.xml` as per your structure
-          options: '-X'  # For verbose output, remove if not needed
-          goals: 'clean install -DskipTests'
           publishJUnitResults: true
-          javaHomeOption: 'JDKVersion'  # Use the built-in option for Java version
-          jdkVersionOption: '11'  # Specify Java version (17 in your case)
-          mavenVersionOption: 'Default'
-          mavenAuthenticateFeed: true
-          sqMavenPluginVersionChoice: 'latest'  # Remove if SonarQube is not needed
+          goals: 'clean install -DskipTests'
+          javaHomeOption: 'Path'
+          jdkDirectory: '$(JAVA_HOME)'  # Use the JAVA_HOME variable set earlier
+          mavenVersionOption: 'Path'
+          mavenDirectory: '/usr'  # Path to Maven installation
+          options: ''  # Removed -X for less verbose output
+        displayName: 'Build Maven Project'
 
-      # Step 3: Docker build and push to Azure Container Registry (ACR)
+      # Step 4: Docker build and push to Azure Container Registry (ACR)
       - task: Docker@2
         inputs:
           command: 'buildAndPush'
@@ -40,13 +54,13 @@ jobs:
           tags: |
             latest-$(Build.BuildId)  # Use build ID as the tag
 
-      # Step 4: Install zip utility for archiving build artifacts
+      # Step 5: Install zip utility for archiving build artifacts
       - script: |
           sudo apt-get update
           sudo apt-get install -y zip
         displayName: 'Install zip utility'
 
-      # Step 5: Archive build artifacts
+      # Step 6: Archive build artifacts
       - task: ArchiveFiles@2
         inputs:
           rootFolderOrFile: '$(Build.BinariesDirectory)'  # Specify the directory to archive
@@ -54,9 +68,3 @@ jobs:
           archiveType: 'zip'  # Archive type
           archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'  # Archive path and filename
           replaceExistingArchive: true  # Replace existing archive if it exists
-
-      # Step 6: Deploy service using kubectl (optional, based on your custom YAML)
-      - script: |
-          kubectl apply -f deploymentservice.yaml  # Deploy service using your custom YAML file
-          kubectl apply -f deploysvc.yaml  # Optionally deploy another YAML file
-        displayName: 'Deploy service'
