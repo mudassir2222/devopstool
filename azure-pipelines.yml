@@ -4,55 +4,59 @@ trigger:
 pool:
   name: 'default'  # Set to default agent pool
 
-steps:
-# Step 1: Set JAVA_HOME and PATH to use the existing JDK
-- script: |
-    echo "##vso[task.setvariable variable=JAVA_HOME]/usr/lib/jvm/java-17-openjdk-amd64"  # Ensure correct JDK version
-    echo "##vso[task.setvariable variable=PATH]$JAVA_HOME/bin:$PATH"
-    echo "JAVA_HOME is set to: $(JAVA_HOME)"
-    echo "PATH is updated."
-  displayName: 'Set JAVA_HOME and PATH'
+jobs:
+  - job: Build
+    displayName: 'Build Java Application'
+    pool:
+      name: 'Default'
 
-# Step 2: Maven build step
-- task: Maven@3
-  inputs:
-    mavenPomFile: 'pom.xml'  # Root-level `pom.xml` as per your structure
-    options: '-X'  # For verbose output, remove if not needed
-    goals: 'clean install -DskipTests'
-    publishJUnitResults: true
-    javaHomeOption: 'JDKVersion'  # Use the built-in option for Java version
-    jdkVersionOption: '17'  # Specify Java version (17 in your case)
-    mavenVersionOption: 'Default'
-    mavenAuthenticateFeed: true
-    sqMavenPluginVersionChoice: 'latest'  # Remove if SonarQube is not needed
+    steps:
+      # Step 1: Set JAVA_HOME correctly (Use Java 11 path as per your previous example)
+      - script: |
+          echo "##vso[task.setvariable variable=JAVA_HOME]/usr/lib/jvm/java-11-openjdk-amd64"
+          echo "JAVA_HOME is set to: $(JAVA_HOME)"
+        displayName: 'Set JAVA_HOME'
 
-# Step 3: Docker build and push to Azure Container Registry (ACR)
-- task: Docker@2
-  inputs:
-    command: 'buildAndPush'
-    repository: 'samrg.azurecr.io/devopstool'  # Replace with your actual ACR repository name
-    dockerfile: 'Dockerfile'  # Root-level Dockerfile
-    containerRegistry: 'md-service-connection-docker'  # Replace with your ACR service connection name
-    tags: |
-      latest-$(Build.BuildId)  # Use build ID as the tag
+      # Step 2: Maven build step (Build Maven Project)
+      - task: Maven@3
+        inputs:
+          mavenPomFile: 'pom.xml'  # Root-level `pom.xml` as per your structure
+          options: '-X'  # For verbose output, remove if not needed
+          goals: 'clean install -DskipTests'
+          publishJUnitResults: true
+          javaHomeOption: 'JDKVersion'  # Use the built-in option for Java version
+          jdkVersionOption: '17'  # Specify Java version (17 in your case)
+          mavenVersionOption: 'Default'
+          mavenAuthenticateFeed: true
+          sqMavenPluginVersionChoice: 'latest'  # Remove if SonarQube is not needed
 
-# Step 4: Install zip utility for archiving build artifacts
-- script: |
-    sudo apt-get update
-    sudo apt-get install -y zip
-  displayName: 'Install zip utility'
+      # Step 3: Docker build and push to Azure Container Registry (ACR)
+      - task: Docker@2
+        inputs:
+          command: 'buildAndPush'
+          repository: 'samrg.azurecr.io/devopstool'  # Replace with your actual ACR repository name
+          dockerfile: 'Dockerfile'  # Root-level Dockerfile
+          containerRegistry: 'md-service-connection-docker'  # Replace with your ACR service connection name
+          tags: |
+            latest-$(Build.BuildId)  # Use build ID as the tag
 
-# Step 5: Archive build artifacts
-- task: ArchiveFiles@2
-  inputs:
-    rootFolderOrFile: '$(Build.BinariesDirectory)'  # Specify the directory to archive
-    includeRootFolder: true  # Include the root folder
-    archiveType: 'zip'  # Archive type
-    archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'  # Archive path and filename
-    replaceExistingArchive: true  # Replace existing archive if it exists
+      # Step 4: Install zip utility for archiving build artifacts
+      - script: |
+          sudo apt-get update
+          sudo apt-get install -y zip
+        displayName: 'Install zip utility'
 
-# Step 6: Deploy service using kubectl (optional, based on your custom YAML)
-- script: |
-    kubectl apply -f deploymentservice.yaml  # Deploy service using your custom YAML file
-    kubectl apply -f deploysvc.yaml  # Optionally deploy another YAML file
-  displayName: 'Deploy service'
+      # Step 5: Archive build artifacts
+      - task: ArchiveFiles@2
+        inputs:
+          rootFolderOrFile: '$(Build.BinariesDirectory)'  # Specify the directory to archive
+          includeRootFolder: true  # Include the root folder
+          archiveType: 'zip'  # Archive type
+          archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'  # Archive path and filename
+          replaceExistingArchive: true  # Replace existing archive if it exists
+
+      # Step 6: Deploy service using kubectl (optional, based on your custom YAML)
+      - script: |
+          kubectl apply -f deploymentservice.yaml  # Deploy service using your custom YAML file
+          kubectl apply -f deploysvc.yaml  # Optionally deploy another YAML file
+        displayName: 'Deploy service'
