@@ -57,7 +57,7 @@ jobs:
           dockerfile: 'Dockerfile'  # Root-level Dockerfile
           containerRegistry: 'md-service-connection-docker'  # Replace with your ACR service connection name
           tags: |
-            latest-$(Build.BuildId)  # Use build ID as the tag
+            latest-$(Build.BuildId)  # Correct tag format without spaces or comments
 
       # Step 6: Install zip utility for archiving build artifacts
       - script: |
