@@ -20,9 +20,8 @@ steps:
     options: '-X'  # For verbose output, remove if not needed
     goals: 'clean install -DskipTests'
     publishJUnitResults: true
-    javaHomeOption: 'Path'
-    jdkVersionOption: '17'
-    jdkUserInputPath: '/usr/lib/jvm/java-17-openjdk-amd64'  # Specify the JDK path explicitly
+    javaHomeOption: 'JDKVersion'  # Use the built-in option for Java version
+    jdkVersionOption: '17'  # Specify Java version (17 in your case)
     mavenVersionOption: 'Default'
     mavenAuthenticateFeed: true
     sqMavenPluginVersionChoice: 'latest'  # Remove if SonarQube is not needed
