@@ -31,7 +31,7 @@ steps:
     command: 'buildAndPush'
     repository: 'samrg.azurecr.io/devopstool'  # Replace <ACRName> with your actual ACR name
     dockerfile: 'Dockerfile'  # Root-level Dockerfile
-    containerRegistry: 'Docker_Registry'  # Replace with your ACR service connection name
+    containerRegistry: 'md-service-connection-docker'  # Replace with your ACR service connection name
     tags: |
       latest-$(Build.BuildId)
 
