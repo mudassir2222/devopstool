@@ -55,7 +55,7 @@ jobs:
           command: 'buildAndPush'
           repository: 'muddaacr.azurecr.io/devopstool'    # Replace with your actual ACR repository name
           dockerfile: 'Dockerfile'                     # Root-level Dockerfile
-          containerRegistry: 'md-service-connection-docker'  # Replace with your ACR service connection name
+          containerRegistry: 'md-service-connection-Acr'  # Replace with your ACR service connection name
           tags: |
             latest-$(Build.BuildId)
 
