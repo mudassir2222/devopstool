@@ -1,8 +1,8 @@
 trigger:
-  - main  # Adjust the branch as needed
+  - main  # Ensure this points to your branch
 
 pool:
-  name: 'default'  # Set to default agent pool
+  name: 'default'  # Use the default agent pool, change if needed
 
 jobs:
   - job: Build
@@ -12,10 +12,10 @@ jobs:
 
     variables:
       DOCKER_BUILDKIT: '1'
-      DOCKER_REGISTRY: 'mudassir376'  # Replace with your Docker Hub username
-      DOCKER_IMAGE_NAME: 'automate'  # Replace with your image name
+      DOCKER_REGISTRY: 'mudassir376'  # Your Docker Hub username
+      DOCKER_IMAGE_NAME: 'automate'  # Your image name
       DOCKER_IMAGE_TAG: 'latest'
-      DATE_TAG: $(Build.BuildId)  # Use Azure DevOps Build ID as a tag
+      DATE_TAG: $(Build.BuildId)  # Using Azure DevOps Build ID as the tag
 
     steps:
       # Step 1: Set Docker socket permissions
@@ -23,44 +23,44 @@ jobs:
           sudo chmod 666 /var/run/docker.sock
         displayName: 'Set Docker socket permissions'
 
-      # Step 2: Set JAVA_HOME correctly (Use Java 11 path as per your previous example)
+      # Step 2: Set JAVA_HOME for Java 11
       - script: |
           echo "##vso[task.setvariable variable=JAVA_HOME]/usr/lib/jvm/java-11-openjdk-amd64"
           echo "JAVA_HOME is set to: $(JAVA_HOME)"
         displayName: 'Set JAVA_HOME'
 
-      # Step 3: Print Maven Path and verify Maven installation
+      # Step 3: Verify Maven installation
       - script: |
           echo "Maven Path: $(which mvn)"
           echo "JAVA_HOME is: $(JAVA_HOME)"
           mvn -v  # Verify Maven is correctly installed
         displayName: 'Verify Maven Installation'
 
-      # Step 4: Maven build step (Build Maven Project)
+      # Step 4: Build with Maven
       - task: Maven@4
         inputs:
-          mavenPomFile: 'pom.xml'  # Root-level `pom.xml` as per your structure
+          mavenPomFile: 'pom.xml'  # Ensure path is correct
           publishJUnitResults: true
           goals: 'clean install -DskipTests'
           javaHomeOption: 'Path'
-          jdkDirectory: '$(JAVA_HOME)'  # Use the JAVA_HOME variable set earlier
+          jdkDirectory: '$(JAVA_HOME)'  # Use JAVA_HOME for the JDK
           mavenVersionOption: 'Path'
-          mavenDirectory: '/usr'  # Path to Maven installation
-          options: ''  # Removed -X for less verbose output
+          mavenDirectory: '/usr'  # Maven installation path
+          options: ''  # Optional Maven options
         displayName: 'Build Maven Project'
 
-      # Step 5: Docker build and push to Azure Container Registry (ACR)
+      # Step 5: Docker Build and Push to ACR
       - task: Docker@2
         inputs:
           command: 'buildAndPush'
-          repository: 'muddaacr.azurecr.io/devopstool'    # Replace with your actual ACR repository name
-          dockerfile: 'Dockerfile'                     # Root-level Dockerfile
-          containerRegistry: 'md-service-connection-Acr'  # Replace with your ACR service connection name
+          repository: 'muddaacr.azurecr.io/devopstool'  # Your ACR repository
+          dockerfile: 'Dockerfile'  # Adjust if your Dockerfile is elsewhere
+          containerRegistry: 'md-service-connection-Acr'  # ACR service connection
           tags: |
             latest-$(Build.BuildId)
+        displayName: 'Build and Push Docker Image'
 
-
-      # Step 6: Install zip utility for archiving build artifacts
+      # Step 6: Install zip utility for archiving
       - script: |
           sudo apt-get update
           sudo apt-get install -y zip
@@ -69,8 +69,9 @@ jobs:
       # Step 7: Archive build artifacts
       - task: ArchiveFiles@2
         inputs:
-          rootFolderOrFile: '$(Build.BinariesDirectory)'  # Specify the directory to archive
-          includeRootFolder: true  # Include the root folder
-          archiveType: 'zip'  # Archive type
-          archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'  # Archive path and filename
-          replaceExistingArchive: true  # Replace existing archive if it exists
+          rootFolderOrFile: '$(Build.BinariesDirectory)'  # Specify your artifact folder
+          includeRootFolder: true
+          archiveType: 'zip'
+          archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+          replaceExistingArchive: true
+        displayName: 'Archive Build Artifacts'
