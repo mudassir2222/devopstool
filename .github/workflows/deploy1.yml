@@ -1,0 +1,23 @@
+name: Java Maven CI
+
+on:
+  push:
+    branches:
+      - main  # Agar tu kisi aur branch pe kaam karta hai to uska naam yahan de
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'  # Apne project ke Java version ke hisaab se change kar (11, 21, etc.)
+
+      - name: Build and Test with Maven
+        run: mvn clean install
